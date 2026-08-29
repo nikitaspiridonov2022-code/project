@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Cryptogram</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     CRYPTOGRAM THEME (полная копия Telegram)
+     ============================================================ */
+  :root {
+    --cg-bg: #0a0a0a;
+    --cg-surface: #1f1f1f;
+    --cg-surface-light: #2b2b2b;
+    --cg-surface-lighter: #383838;
+    --cg-border: #2f2f2f;
+    --cg-text: #ffffff;
+    --cg-text-secondary: #a9a9a9;
+    --cg-text-muted: #6b6b6b;
+    --cg-blue: #0088cc;
+    --cg-blue-dark: #006699;
+    --cg-blue-light: #1a9eff;
+    --cg-green: #4ade80;
+    --cg-red: #ef4444;
+    --cg-yellow: #fbbf24;
+    --cg-purple: #8b5cf6;
+    --cg-pink: #ec4899;
+    --cg-orange: #f59e0b;
+    --cg-radius: 12px;
+    --cg-avatar-size: 48px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--cg-bg);
+    color: var(--cg-text);
+    -webkit-font-smoothing: antialiased;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--cg-border); border-radius: 10px; }
+
+  #app { display: flex; height: 100vh; background: var(--cg-bg); }
+
+  /* ===== SIDEBAR ===== */
+  #sidebar {
+    width: 380px;
+    min-width: 380px;
+    background: var(--cg-surface);
+    border-right: 1px solid var(--cg-border);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: relative;
+    z-index: 10;
+  }
+
+  .cg-header {
+    padding: 12px 16px 8px 16px;
+    border-bottom: 1px solid var(--cg-border);
+    background: var(--cg-surface);
+    flex-shrink: 0;
+  }
+
+  .cg-header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .cg-header-title {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #0088cc, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+  }
+
+  .cg-header-actions { display: flex; gap: 4px; }
+
+  .cg-icon-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    color: var(--cg-text-secondary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-size: 18px;
+  }
+  .cg-icon-btn:hover { background: var(--cg-surface-light); }
+
+  .cg-search { position: relative; }
+  .cg-search input {
+    width: 100%;
+    padding: 8px 12px 8px 36px;
+    background: var(--cg-surface-light);
+    border: none;
+    border-radius: var(--cg-radius);
+    color: var(--cg-text);
+    font-size: 14px;
+    outline: none;
+    transition: background 0.15s;
+  }
+  .cg-search input::placeholder { color: var(--cg-text-muted); }
+  .cg-search input:focus { background: #333; }
+  .cg-search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--cg-text-muted);
+    font-size: 16px;
+    pointer-events: none;
+  }
+
+  #chat-list { flex: 1; overflow-y: auto; padding: 4px 0; }
+
+  .chat-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: background 0.1s;
+    border-left: 3px solid transparent;
+    gap: 12px;
+  }
+  .chat-item:hover { background: var(--cg-surface-light); }
+  .chat-item.active {
+    background: var(--cg-surface-light);
+    border-left-color: var(--cg-blue);
+  }
+
+  .avatar {
+    width: var(--cg-avatar-size);
+    height: var(--cg-avatar-size);
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 18px;
+    color: #fff;
+    text-transform: uppercase;
+    position: relative;
+  }
+  .avatar-sm { width: 36px; height: 36px; font-size: 14px; }
+  .avatar .online-dot {
+    position: absolute;
+    bottom: 1px;
+    right: 1px;
+    width: 12px;
+    height: 12px;
+    background: var(--cg-green);
+    border-radius: 50%;
+    border: 2px solid var(--cg-surface);
+  }
+  .chat-item .online-dot { width: 10px; height: 10px; }
+
+  .chat-content { flex: 1; min-width: 0; }
+  .chat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .chat-name {
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .chat-time { font-size: 11px; color: var(--cg-text-muted); flex-shrink: 0; }
+  .chat-last {
+    font-size: 13px;
+    color: var(--cg-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 1px;
+  }
+
+  .badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+  }
+  .badge-admin { background: var(--cg-blue); color: #fff; }
+  .badge-creator { background: linear-gradient(135deg, #f59e0b, #ef4444); color: #fff; }
+  .badge-premium { background: linear-gradient(135deg, #8b5cf6, #ec4899); color: #fff; }
+  .badge-banned { background: var(--cg-red); color: #fff; }
+  .badge-unread {
+    background: var(--cg-blue);
+    color: #fff;
+    border-radius: 50%;
+    min-width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 0 5px;
+    flex-shrink: 0;
+  }
+
+  .bottom-bar {
+    padding: 10px 16px;
+    border-top: 1px solid var(--cg-border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    background: var(--cg-surface);
+  }
+  .bottom-bar .user-info { flex: 1; min-width: 0; }
+  .bottom-bar .user-name { font-weight: 600; font-size: 14px; }
+  .bottom-bar .user-status { font-size: 12px; color: var(--cg-text-secondary); }
+
+  /* ===== MAIN CHAT ===== */
+  #main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--cg-bg);
+    min-width: 0;
+  }
+
+  #chat-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: var(--cg-surface);
+    border-bottom: 1px solid var(--cg-border);
+    flex-shrink: 0;
+  }
+  #back-btn {
+    display: none;
+    background: transparent;
+    border: none;
+    color: var(--cg-text-secondary);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 4px 8px;
+  }
+  #chat-header .chat-info { flex: 1; min-width: 0; }
+  #chat-header .chat-name { font-size: 16px; font-weight: 600; }
+  #chat-header .chat-status { font-size: 12px; color: var(--cg-text-muted); }
+  #chat-header .chat-status.online { color: var(--cg-green); }
+  .header-actions-right { display: flex; gap: 4px; }
+
+  #messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .msg-row {
+    max-width: 70%;
+    animation: msgIn 0.2s ease;
+    display: flex;
+    flex-direction: column;
+  }
+  @keyframes msgIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .msg-row.in { align-self: flex-start; }
+  .msg-row.out { align-self: flex-end; }
+  .msg-row.sys { align-self: center; max-width: 80%; }
+
+  .bubble {
+    padding: 8px 12px;
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.5;
+    word-break: break-word;
+  }
+  .msg-row.in .bubble {
+    background: var(--cg-surface);
+    border-bottom-left-radius: 4px;
+    color: var(--cg-text);
+  }
+  .msg-row.out .bubble {
+    background: var(--cg-blue);
+    border-bottom-right-radius: 4px;
+    color: #fff;
+  }
+  .msg-row.sys .bubble {
+    background: rgba(0, 136, 204, 0.15);
+    color: var(--cg-text-secondary);
+    font-size: 13px;
+    text-align: center;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 136, 204, 0.2);
+  }
+
+  .msg-time {
+    font-size: 10px;
+    color: var(--cg-text-muted);
+    margin-top: 2px;
+    padding: 0 4px;
+  }
+  .msg-row.out .msg-time { text-align: right; }
+
+  #composer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: var(--cg-surface);
+    border-top: 1px solid var(--cg-border);
+    flex-shrink: 0;
+  }
+  #composer input {
+    flex: 1;
+    padding: 10px 14px;
+    background: var(--cg-surface-light);
+    border: none;
+    border-radius: var(--cg-radius);
+    color: var(--cg-text);
+    font-size: 14px;
+    outline: none;
+  }
+  #composer input::placeholder { color: var(--cg-text-muted); }
+  #send-btn {
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 50%;
+    background: var(--cg-blue);
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  #send-btn:hover { background: var(--cg-blue-dark); }
+
+  .composer-actions { display: flex; gap: 4px; align-items: center; }
+  .composer-actions .cg-icon-btn { font-size: 20px; }
+
+  /* ===== ADMIN PANEL ===== */
+  #admin-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+  }
+  #admin-overlay.open { opacity: 1; pointer-events: auto; }
+
+  #admin-panel {
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 420px;
+    max-width: 92vw;
+    height: 100vh;
+    background: var(--cg-surface);
+    z-index: 101;
+    transform: translateX(100%);
+    transition: transform 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid var(--cg-border);
+  }
+  #admin-panel.open { transform: translateX(0); }
+
+  .admin-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--cg-border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    background: var(--cg-surface);
+  }
+  .admin-header .title {
+    font-size: 18px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #0088cc, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .admin-header .close-btn { margin-left: auto; }
+
+  .admin-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--cg-border);
+    background: var(--cg-surface);
+    flex-shrink: 0;
+    overflow-x: auto;
+  }
+  .admin-tab {
+    padding: 6px 14px;
+    border: none;
+    background: transparent;
+    color: var(--cg-text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .admin-tab:hover { background: var(--cg-surface-light); color: var(--cg-text); }
+  .admin-tab.active { background: var(--cg-blue); color: #fff; }
+
+  .admin-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+  }
+  .admin-panel-content { display: none; }
+  .admin-panel-content.active { display: block; }
+
+  .admin-input {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--cg-surface-light);
+    border: 1px solid var(--cg-border);
+    border-radius: var(--cg-radius);
+    color: var(--cg-text);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.15s;
+    margin-bottom: 10px;
+  }
+  .admin-input:focus { border-color: var(--cg-blue); }
+
+  .admin-btn {
+    padding: 10px 16px;
+    border: none;
+    border-radius: var(--cg-radius);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  .admin-btn.primary { background: var(--cg-blue); color: #fff; }
+  .admin-btn.primary:hover { background: var(--cg-blue-dark); }
+  .admin-btn.premium-btn { background: linear-gradient(135deg, #8b5cf6, #ec4899); color: #fff; }
+  .admin-btn.premium-btn:hover { opacity: 0.9; }
+  .admin-btn.danger { background: var(--cg-red); color: #fff; }
+  .admin-btn.danger:hover { background: #dc2626; }
+  .admin-btn.success { background: var(--cg-green); color: #000; }
+  .admin-btn.success:hover { opacity: 0.9; }
+
+  .admin-user-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--cg-border);
+  }
+  .admin-user-row .info { flex: 1; min-width: 0; }
+  .admin-user-row .name { font-weight: 500; }
+  .admin-user-row .sub { font-size: 12px; color: var(--cg-text-muted); }
+  .admin-user-row .actions { display: flex; gap: 4px; flex-wrap: wrap; }
+  .mini-btn {
+    padding: 2px 8px;
+    border: none;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .mini-btn.give-premium { background: linear-gradient(135deg, #8b5cf6, #ec4899); color: #fff; }
+  .mini-btn.give-premium:hover { opacity: 0.8; }
+  .mini-btn.ban { background: var(--cg-red); color: #fff; }
+  .mini-btn.ban:hover { opacity: 0.8; }
+  .mini-btn.unban { background: var(--cg-green); color: #000; }
+  .mini-btn.unban:hover { opacity: 0.8; }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .stat-card {
+    background: var(--cg-surface-light);
+    border-radius: var(--cg-radius);
+    padding: 12px;
+    text-align: center;
+  }
+  .stat-card .num {
+    font-size: 24px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #0088cc, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .stat-card .label { font-size: 11px; color: var(--cg-text-muted); margin-top: 2px; }
+
+  /* ===== MENU ===== */
+  #menu-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 50;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+  }
+  #menu-overlay.open { opacity: 1; pointer-events: auto; }
+
+  #menu-panel {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 320px;
+    max-width: 80vw;
+    height: 100vh;
+    background: var(--cg-surface);
+    z-index: 51;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 16px;
+  }
+  #menu-panel.open { transform: translateX(0); }
+
+  .menu-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    border-radius: var(--cg-radius);
+    cursor: pointer;
+    transition: background 0.15s;
+    color: var(--cg-text);
+    text-decoration: none;
+  }
+  .menu-item:hover { background: var(--cg-surface-light); }
+  .menu-item .icon { font-size: 22px; width: 32px; text-align: center; }
+  .menu-item .label { font-size: 15px; font-weight: 500; }
+  .menu-divider { height: 1px; background: var(--cg-border); margin: 8px 0; }
+
+  .creator-badge {
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  @media (max-width: 768px) {
+    #sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      transform: translateX(0);
+      transition: transform 0.25s ease;
+      min-width: unset;
+      z-index: 10;
+    }
+    #sidebar.hide { transform: translateX(-100%); }
+    #back-btn { display: block !important; }
+    #main { width: 100%; }
+    .msg-row { max-width: 85%; }
+    .stat-grid { grid-template-columns: 1fr 1fr; }
+    #admin-panel { width: 100%; max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div class="cg-header">
+      <div class="cg-header-top">
+        <div class="cg-header-title" id="menuToggle">☰ Cryptogram</div>
+        <div class="cg-header-actions">
+          <button class="cg-icon-btn" id="adminToggle" title="Админ-панель">⚙</button>
+          <button class="cg-icon-btn" id="newChatBtn" title="Новый чат">✎</button>
+        </div>
+      </div>
+      <div class="cg-search">
+        <span class="cg-search-icon">🔍</span>
+        <input id="search" placeholder="Поиск по чатам..." />
+      </div>
+    </div>
+
+    <div id="chat-list"></div>
+
+    <div class="bottom-bar">
+      <div class="avatar avatar-sm" id="meAvatar" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">C</div>
+      <div class="user-info">
+        <div class="user-name" id="meName">Создатель</div>
+        <div class="user-status" id="meStatus">👑 Создатель · +888 888 88 88</div>
+      </div>
+      <button class="cg-icon-btn" id="profileToggle">👤</button>
+    </div>
+  </div>
+
+  <!-- MAIN CHAT -->
+  <div id="main">
+    <div id="chat-header">
+      <button id="backBtn">←</button>
+      <div class="avatar avatar-sm" id="headerAvatar" style="background: #6b6b6b;">А</div>
+      <div class="chat-info">
+        <div class="chat-name" id="headerName">Анна Волкова</div>
+        <div class="chat-status" id="headerStatus">в сети</div>
+      </div>
+      <div class="header-actions-right">
+        <button class="cg-icon-btn" title="Поиск">🔍</button>
+        <button class="cg-icon-btn" title="Ещё">⋮</button>
+      </div>
+    </div>
+
+    <div id="messages"></div>
+
+    <div id="composer">
+      <div class="composer-actions">
+        <button class="cg-icon-btn" id="voiceBtn" title="Голосовое сообщение">🎤</button>
+        <button class="cg-icon-btn" title="Прикрепить">📎</button>
+      </div>
+      <input id="msgInput" placeholder="Написать сообщение..." />
+      <button id="sendBtn">➤</button>
+    </div>
+  </div>
+
+  <!-- MENU -->
+  <div id="menu-overlay"></div>
+  <div id="menu-panel">
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid var(--cg-border);">
+      <div class="avatar avatar-sm" style="background:linear-gradient(135deg,#f59e0b,#ef4444);">C</div>
+      <div>
+        <div style="font-weight:700; font-size:16px;">Cryptogram</div>
+        <div style="font-size:12px; color:var(--cg-text-muted);">v1.0.0</div>
+      </div>
+    </div>
+
+    <a class="menu-item" id="menuProfile">
+      <span class="icon">👤</span>
+      <span class="label">Мой профиль</span>
+    </a>
+    <a class="menu-item" id="menuCreator">
+      <span class="icon">👑</span>
+      <span class="label">Создатель <span class="creator-badge">+888 888 88 88</span></span>
+    </a>
+    <div class="menu-divider"></div>
+    <a class="menu-item" id="menuNewChat">
+      <span class="icon">✎</span>
+      <span class="label">Новый чат</span>
+    </a>
+    <a class="menu-item" id="menuContacts">
+      <span class="icon">📇</span>
+      <span class="label">Контакты</span>
+    </a>
+    <a class="menu-item" id="menuCalls">
+      <span class="icon">📞</span>
+      <span class="label">Звонки</span>
+    </a>
+    <a class="menu-item" id="menuSaved">
+      <span class="icon">📌</span>
+      <span class="label">Сохранённое</span>
+    </a>
+    <a class="menu-item" id="menuSettings">
+      <span class="icon">⚙</span>
+      <span class="label">Настройки</span>
+    </a>
+    <div class="menu-divider"></div>
+    <a class="menu-item" id="menuAdmin" style="background:rgba(139,92,246,0.1);">
+      <span class="icon">🛡️</span>
+      <span class="label" style="color:var(--cg-purple);">Админ-панель</span>
+    </a>
+  </div>
+
+  <!-- ADMIN PANEL -->
+  <div id="admin-overlay"></div>
+  <div id="admin-panel">
+    <div class="admin-header">
+      <span style="font-size:24px;">🛡️</span>
+      <span class="title">Cryptogram Admin</span>
+      <button class="cg-icon-btn close-btn" id="adminClose">✕</button>
+    </div>
+
+    <div class="admin-tabs">
+      <button class="admin-tab active" data-tab="overview">📊 Обзор</button>
+      <button class="admin-tab" data-tab="users">👥 Пользователи</button>
+      <button class="admin-tab" data-tab="premium">⭐ Premium</button>
+      <button class="admin-tab" data-tab="broadcast">📢 Рассылка</button>
+    </div>
+
+    <div class="admin-body">
+      <!-- Overview -->
+      <div class="admin-panel-content active" id="panelOverview">
+        <div class="stat-grid">
+          <div class="stat-card"><div class="num" id="statChats">0</div><div class="label">Чаты</div></div>
+          <div class="stat-card"><div class="num" id="statUsers">0</div><div class="label">Пользователи</div></div>
+          <div class="stat-card"><div class="num" id="statPremium">0</div><div class="label">Premium</div></div>
+        </div>
+        <div style="background: var(--cg-surface-light); border-radius: var(--cg-radius); padding: 14px; margin-bottom: 12px;">
+          <div style="font-size:13px; color: var(--cg-text-muted);">
+            👑 Вы — <strong style="color:var(--cg-yellow);" id="adminCreatorName">Создатель</strong>
+          </div>
+          <div style="font-size:12px; color: var(--cg-text-muted); margin-top:4px;">
+            📱 Ваш номер: <span style="color:var(--cg-yellow); font-weight:700;" id="adminMyPhone">+888 888 88 88</span>
+          </div>
+          <div style="font-size:12px; color: var(--cg-text-muted); margin-top:2px;">
+            ⭐ Premium: <span style="color:var(--cg-purple);">активен (выдан создателем)</span>
+          </div>
+        </div>
+        <button class="admin-btn primary" id="adminRefresh">🔄 Обновить</button>
+      </div>
+
+      <!-- Users -->
+      <div class="admin-panel-content" id="panelUsers">
+        <div id="adminUserList"></div>
+      </div>
+
+      <!-- Premium (только для создателя!) -->
+      <div class="admin-panel-content" id="panelPremium">
+        <div style="margin-bottom:12px; background: rgba(139,92,246,0.1); border-radius: var(--cg-radius); padding: 14px; border: 1px solid rgba(139,92,246,0.2);">
+          <div style="font-size:14px; font-weight:600; color:var(--cg-purple);">⭐ Cryptogram Premium</div>
+          <p style="font-size:13px; color: var(--cg-text-muted); margin-top:4px;">
+            <strong style="color:var(--cg-red);">❌ Premium НЕЛЬЗЯ КУПИТЬ!</strong><br>
+            Только создатель может выдавать Premium пользователям.
+          </p>
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <span class="admin-input" style="display:block; font-size:12px; color:var(--cg-text-muted); background:var(--cg-surface-lighter); border-radius:var(--cg-radius); padding:8px 12px;">
+            👑 Выдаёт: <strong style="color:var(--cg-yellow);">Создатель (+888 888 88 88)</strong>
+          </span>
+          <select class="admin-input" id="premiumUserSelect"></select>
+          <button class="admin-btn premium-btn" id="givePremiumBtn">⭐ Выдать Premium</button>
+          <button class="admin-btn danger" id="removePremiumBtn" style="margin-top:4px;">❌ Забрать Premium</button>
+        </div>
+
+        <div style="margin-top:16px;">
+          <span style="font-size:12px; font-weight:600; color:var(--cg-text-muted); display:block; margin-bottom:8px;">💎 Премиум-эмодзи (только для Premium):</span>
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:8px;">
+            <div style="background:var(--cg-surface-light); border-radius:8px; padding:8px; text-align:center; font-size:20px;">✨</div>
+            <div style="background:var(--cg-surface-light); border-radius:8px; padding:8px; text-align:center; font-size:20px;">🌟</div>
+            <div style="background:var(--cg-surface-light); border-radius:8px; padding:8px; text-align:center; font-size:20px;">💎</div>
+            <div style="background:var(--cg-surface-light); border-radius:8px; padding:8px; text-align:center; font-size:20px;">🦄</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Broadcast -->
+      <div class="admin-panel-content" id="panelBroadcast">
+        <div style="margin-bottom:12px;">
+          <span style="font-size:12px; font-weight:600; color:var(--cg-text-muted); display:block; margin-bottom:4px;">📢 Рассылка от Cryptogram Team</span>
+          <textarea class="admin-input" id="broadcastText" placeholder="Сообщение для всех..." rows="4"></textarea>
+          <button class="admin-btn primary" id="broadcastSend">📨 Отправить рассылку</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+
+const COLORS = ['#0088cc', '#34a853', '#ea4335', '#fbbc04', '#9c27b0', '#00bcd4', '#ff6f00', '#e91e63', '#3f51b5'];
+
+function getColor(name) {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return COLORS[Math.abs(hash) % COLORS.length];
+}
+
+// ==== СОЗДАТЕЛЬ ====
+const creator = {
+  id: 'creator',
+  name: 'Создатель Cryptogram',
+  phone: '+888 888 88 88',
+  isCreator: true,
+  hasPremium: true
+};
+
+// ==== ПОЛЬЗОВАТЕЛИ ====
+const contacts = [
+  { id: 'anna', name: 'Анна Волкова', role: 'admin', online: true, banned: false, phone: '+7 900 123 45 67', hasPremium: false },
+  { id: 'maxim', name: 'Максим Орлов', role: 'admin', online: true, banned: false, phone: '+7 900 234 56 78', hasPremium: false },
+  { id: 'sofia', name: 'София Ким', role: 'user', online: false, banned: false, phone: '+7 900 345 67 89', hasPremium: false },
+  { id: 'team', name: 'Cryptogram Team', role: 'admin', online: true, banned: false, phone: '+7 900 456 78 90', hasPremium: false },
+  { id: 'dmitry', name: 'Дмитрий Лебедев', role: 'user', online: false, banned: false, phone: '+7 900 567 89 01', hasPremium: false },
+];
+
+// ==== СООБЩЕНИЯ ====
+const messages = {
+  anna: [
+    { from: 'in', text: 'Привет! Скинь ключ для нового чата.', time: '10:12' },
+    { from: 'out', text: 'Уже отправил, проверь вложения.', time: '10:14' },
+  ],
+  maxim: [
+    { from: 'in', text: 'Модерация чата #4 завершена.', time: '09:40' },
+  ],
+  sofia: [
+    { from: 'out', text: 'До связи, пиши если что 😉', time: 'вчера' },
+  ],
+  team: [
+    { from: 'in', text: 'Добро пожаловать в Cryptogram.', time: '08:00' },
+  ],
+  dmitry: [
+    { from: 'in', text: 'Файл получен, спасибо.', time: 'пн' },
+  ],
+};
+
+let activeChat = 'anna';
+let creatorName = 'Создатель';
+
+// ============================================================
+// HELPERS
+// ============================================================
+
+function getInitials(name) {
+  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+}
+
+function getLastMessage(chatId) {
+  const msgs = messages[chatId] || [];
+  return msgs.length ? msgs[msgs.length - 1] : null;
+}
+
+function getUnreadCount(chatId) {
+  return (messages[chatId] || []).filter(m => m.from === 'in').length;
+}
+
+function getPremiumCount() {
+  return contacts.filter(c => c.hasPremium).length + (creator.hasPremium ? 1 : 0);
+}
+
+function getTotalUsers() {
+  return contacts.length + 1;
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+
+function renderChatList(filter = '') {
+  const list = document.getElementById('chat-list');
+  list.innerHTML = '';
+
+  const filtered = contacts.filter(c =>
+    c.name.toLowerCase().includes(filter.toLowerCase()) &&
+    !c.banned
+  );
+
+  filtered.forEach(c => {
+    const last = getLastMessage(c.id);
+    const unread = getUnreadCount(c.id);
+    const isActive = c.id === activeChat;
+    const color = getColor(c.name);
+
+    const item = document.createElement('div');
+    item.className = `chat-item${isActive ? ' active' : ''}`;
+    item.innerHTML = `
+      <div class="avatar" style="background: ${color};">
+        ${getInitials(c.name)}
+        ${c.online ? '<span class="online-dot"></span>' : ''}
+      </div>
+      <div class="chat-content">
+        <div class="chat-row">
+          <span class="chat-name">${c.name}</span>
+          <span class="chat-time">${last ? last.time : ''}</span>
+        </div>
+        <div class="chat-row">
+          <span class="chat-last">${last ? last.text : 'Нет сообщений'}</span>
+          ${unread > 0 ? `<span class="badge-unread">${unread}</span>` : ''}
+          ${c.role === 'admin' ? '<span class="badge badge-admin">A</span>' : ''}
+          ${c.hasPremium ? '<span class="badge badge-premium">⭐</span>' : ''}
+        </div>
+      </div>
+    `;
+
+    item.addEventListener('click', () => {
+      activeChat = c.id;
+      renderAll();
+      if (window.innerWidth <= 768) {
+        document.getElementById('sidebar').classList.add('hide');
+      }
+    });
+
+    list.appendChild(item);
+  });
+}
+
+function renderChat() {
+  const c = contacts.find(x => x.id === activeChat);
+  if (!c) return;
+
+  const avatar = document.getElementById('headerAvatar');
+  avatar.textContent = getInitials(c.name);
+  avatar.style.background = getColor(c.name);
+
+  document.getElementById('headerName').textContent = c.name;
+  const status = document.getElementById('headerStatus');
+  if (c.banned) {
+    status.textContent = 'заблокирован';
+    status.className = 'chat-status';
+  } else if (c.online) {
+    status.textContent = 'в сети';
+    status.className = 'chat-status online';
+  } else {
+    status.textContent = 'был(а) недавно';
+    status.className = 'chat-status';
+  }
+
+  const box = document.getElementById('messages');
+  box.innerHTML = '';
+
+  const msgs = messages[activeChat] || [];
+  msgs.forEach(m => {
+    const row = document.createElement('div');
+    row.className = `msg-row ${m.from}`;
+    row.innerHTML = `
+      <div class="bubble">${m.text}</div>
+      <div class="msg-time">${m.time || ''}</div>
+    `;
+    box.appendChild(row);
+  });
+
+  box.scrollTop = box.scrollHeight;
+}
+
+function renderMe() {
+  const avatar = document.getElementById('meAvatar');
+  avatar.textContent = 'C';
+  avatar.style.background = 'linear-gradient(135deg, #f59e0b, #ef4444)';
+  document.getElementById('meName').textContent = creatorName;
+  document.getElementById('meStatus').textContent = '👑 Создатель · +888 888 88 88 ⭐';
+}
+
+function renderStats() {
+  document.getElementById('statChats').textContent = contacts.length;
+  document.getElementById('statUsers').textContent = getTotalUsers();
+  document.getElementById('statPremium').textContent = getPremiumCount();
+  document.getElementById('adminCreatorName').textContent = creatorName;
+  document.getElementById('adminMyPhone').textContent = creator.phone;
+}
+
+function renderAdminUsers() {
+  const list = document.getElementById('adminUserList');
+  list.innerHTML = '';
+
+  // Создатель
+  const creatorRow = document.createElement('div');
+  creatorRow.className = 'admin-user-row';
+  creatorRow.innerHTML = `
+    <div class="avatar avatar-sm" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">C</div>
+    <div class="info">
+      <div class="name">${creatorName} <span class="badge badge-creator">СОЗДАТЕЛЬ</span> <span class="badge badge-premium">⭐</span></div>
+      <div class="sub">📱 ${creator.phone}</div>
+    </div>
+    <div class="actions">
+      <span style="font-size:10px;color:var(--cg-yellow);">👑</span>
+    </div>
+  `;
+  list.appendChild(creatorRow);
+
+  contacts.forEach(c => {
+    const row = document.createElement('div');
+    row.className = 'admin-user-row';
+    row.innerHTML = `
+      <div class="avatar avatar-sm" style="background: ${getColor(c.name)};">${getInitials(c.name)}</div>
+      <div class="info">
+        <div class="name">${c.name} ${c.banned ? '🚫' : ''} ${c.hasPremium ? '⭐' : ''}</div>
+        <div class="sub">${c.role === 'admin' ? '👑 Админ' : '👤 Участник'} · 📱 ${c.phone}</div>
+      </div>
+      <div class="actions">
+        ${!c.hasPremium ? `<button class="mini-btn give-premium" data-id="${c.id}">⭐ Premium</button>` : '<span style="font-size:10px;color:var(--cg-purple);">⭐ есть</span>'}
+        <button class="mini-btn ${c.banned ? 'unban' : 'ban'}" data-id="${c.id}">
+          ${c.banned ? 'Разбан' : 'Бан'}
+        </button>
+      </div>
+    `;
+    list.appendChild(row);
+
+    // Premium кнопка
+    const premiumBtn = row.querySelector('.give-premium');
+    if (premiumBtn) {
+      premiumBtn.addEventListener('click', () => {
+        c.hasPremium = true;
+        renderAll();
+        alert(`⭐ Premium выдан пользователю ${c.name}`);
+      });
+    }
+
+    // Бан
+    const banBtn = row.querySelector('.mini-btn');
+    banBtn.addEventListener('click', () => {
+      c.banned = !c.banned;
+      renderAll();
+    });
+  });
+
+  populateSelects();
+}
+
+function populateSelects() {
+  const sel = document.getElementById('premiumUserSelect');
+  if (!sel) return;
+  sel.innerHTML = '';
+  contacts.filter(c => !c.banned).forEach(c => {
+    sel.innerHTML += `<option value="${c.id}">${c.name} ${c.hasPremium ? '⭐' : ''}</option>`;
+  });
+}
+
+function renderAll() {
+  const filter = document.getElementById('search').value;
+  renderChatList(filter);
+  renderChat();
+  renderMe();
+  renderStats();
+  renderAdminUsers();
+}
+
+// ============================================================
+// EVENTS
+// ============================================================
+
+document.getElementById('search').addEventListener('input', e => {
+  renderChatList(e.target.value);
+});
+
+document.getElementById('sendBtn').addEventListener('click', sendMessage);
+document.getElementById('msgInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendMessage();
+});
+
+function sendMessage() {
+  const input = document.getElementById('msgInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  if (!messages[activeChat]) messages[activeChat] = [];
+  messages[activeChat].push({
+    from: 'out',
+    text: text,
+    time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+  });
+
+  input.value = '';
+  renderAll();
+}
+
+document.getElementById('voiceBtn').addEventListener('click', () => {
+  if (!messages[activeChat]) messages[activeChat] = [];
+  const duration = Math.floor(5 + Math.random() * 20);
+  messages[activeChat].push({
+    from: 'out',
+    text: '🎤 Голосовое сообщение (0:' + String(duration).padStart(2, '0') + ')',
+    time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+  });
+  renderAll();
+});
+
+document.getElementById('backBtn').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.remove('hide');
+});
+
+// ===== MENU =====
+const menuOverlay = document.getElementById('menu-overlay');
+const menuPanel = document.getElementById('menu-panel');
+
+document.getElementById('menuToggle').addEventListener('click', () => {
+  menuPanel.classList.toggle('open');
+  menuOverlay.classList.toggle('open');
+});
+
+menuOverlay.addEventListener('click', () => {
+  menuPanel.classList.remove('open');
+  menuOverlay.classList.remove('open');
+});
+
+document.getElementById('menuCreator').addEventListener('click', () => {
+  menuPanel.classList.remove('open');
+  menuOverlay.classList.remove('open');
+  alert('👑 Создатель Cryptogram\n📱 +888 888 88 88\n⭐ Premium выдан');
+});
+
+document.getElementById('menuProfile').addEventListener('click', () => {
+  menuPanel.classList.remove('open');
+  menuOverlay.classList.remove('open');
+  alert(`👤 Профиль\nИмя: ${creatorName}\nНомер: ${creator.phone}\n⭐ Premium: активен`);
+});
+
+document.getElementById('menuAdmin').addEventListener('click', () => {
+  menuPanel.classList.remove('open');
+  menuOverlay.classList.remove('open');
+  openAdmin();
+});
+
+// ===== ADMIN =====
+function openAdmin() {
+  document.getElementById('admin-panel').classList.add('open');
+  document.getElementById('admin-overlay').classList.add('open');
+  renderAll();
+}
+
+function closeAdmin() {
+  document.getElementById('admin-panel').classList.remove('open');
+  document.getElementById('admin-overlay').classList.remove('open');
+}
+
+document.getElementById('adminToggle').addEventListener('click', openAdmin);
+document.getElementById('adminClose').addEventListener('click', closeAdmin);
+document.getElementById('admin-overlay').addEventListener('click', closeAdmin);
+
+document.querySelectorAll('.admin-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.admin-panel-content').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel' + tab.dataset.tab.charAt(0).toUpperCase() + tab.dataset.tab.slice(1)).classList.add('active');
+  });
+});
+
+// ===== PREMIUM =====
+document.getElementById('givePremiumBtn').addEventListener('click', () => {
+  const sel = document.getElementById('premiumUserSelect');
+  const user = contacts.find(c => c.id === sel.value);
+  if (!user) { alert('❌ Пользователь не найден'); return; }
+  if (user.hasPremium) { alert('❌ У пользователя уже есть Premium'); return; }
+  user.hasPremium = true;
+  renderAll();
+  alert(`⭐ Premium выдан пользователю ${user.name}`);
+});
+
+document.getElementById('removePremiumBtn').addEventListener('click', () => {
+  const sel = document.getElementById('premiumUserSelect');
+  const user = contacts.find(c => c.id === sel.value);
+  if (!user) { alert('❌ Пользователь не найден'); return; }
+  if (!user.hasPremium) { alert('❌ У пользователя нет Premium'); return; }
+  user.hasPremium = false;
+  renderAll();
+  alert(`❌ Premium забран у пользователя ${user.name}`);
+});
+
+// ===== BROADCAST =====
+document.getElementById('broadcastSend').addEventListener('click', () => {
+  const text = document.getElementById('broadcastText').value.trim();
+  if (!text) { alert('❌ Введите текст рассылки'); return; }
+
+  Object.keys(messages).forEach(id => {
+    messages[id].push({
+      from: 'sys',
+      text: '📢 Cryptogram Team: ' + text,
+      time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+    });
+  });
+
+  document.getElementById('broadcastText').value = '';
+  renderAll();
+  alert('✅ Рассылка отправлена всем чатам!');
+});
+
+// ===== REFRESH =====
+document.getElementById('adminRefresh').addEventListener('click', renderAll);
+
+// ===== INIT =====
+renderAll();
+
+if (window.innerWidth <= 768) {
+  document.getElementById('sidebar').classList.add('hide');
+}
+
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 768) {
+    document.getElementById('sidebar').classList.remove('hide');
+  }
+});
+
+console.log('👑 Создатель Cryptogram');
+console.log('📱 +888 888 88 88');
+console.log('⭐ Premium выдан создателю');
+console.log('❌ Premium НЕЛЬЗЯ КУПИТЬ — только выдаёт создатель');
+</script>
+</body>
+</html>
